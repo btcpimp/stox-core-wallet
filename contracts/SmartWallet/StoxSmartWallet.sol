@@ -30,8 +30,8 @@ contract StoxSmartWallet is Ownable, Utils {
     /*
      *  Events
      */
-    event TransferToBackupAccount(IERC20Token _fromToken, address _backupAccount, uint _amount);
-    event TransferToUserWithdrawalAccount(IERC20Token _fromToken, address _userWithdrawalAccount, uint _amount);
+    event TransferToBackupAccount(IERC20Token _token, address _backupAccount, uint _amount);
+    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
      
     /*
