@@ -13,9 +13,6 @@ let player1;
 let player2;
 let backupAccount;
 
-//Misc.
-let realGasPrice; 
-
 function getLogArg(result, arg, logIndex = 0) {
     return result.logs[logIndex].args[arg];
 }
@@ -27,8 +24,6 @@ contract ('StoxSmartWallet', function(accounts) {
     let player1       = accounts[2];
     let player2       = accounts[3];
     let backupAccount = accounts[4];
-
-    let realGasPrice = 40000000000; //update from https://ethgasstation.info/
 
     async function initSmartWallet() {
 
@@ -53,8 +48,6 @@ contract ('StoxSmartWallet', function(accounts) {
         await stoxTestToken.issue(player2, 1000);
         
     }
-
-
 
 before (async function() {
     
