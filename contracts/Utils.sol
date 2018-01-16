@@ -11,14 +11,6 @@ contract Utils {
     }
 
     /*
-        @dev verifies that an amount is greater than zero
-    */
-    modifier greaterThanZero(uint256 _amount) {
-        require(_amount > 0);
-        _;
-    }
-
-    /*
         @dev validates an address - currently only checks that it isn't null
     */
     modifier validAddress(address _address) {
@@ -26,6 +18,11 @@ contract Utils {
         _;
     }
     
+    modifier greaterThanZero(uint256 _amount) {
+        require(_amount > 0);
+        _;
+    }
+
     /*
         @dev verifies that the address is different than this contract address
     */

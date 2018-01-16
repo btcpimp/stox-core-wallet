@@ -1,7 +1,9 @@
 pragma solidity ^0.4.18;
 import "../token/IERC20Token.sol";
+import "../Libraries/StoxWithdrawalAccountLib.sol";
 import "../Ownable.sol";
 import "../Utils.sol";
+
 
 ///@title - a contract that represents a smart wallet, created by Stox, for every new Stox user
 contract StoxSmartWallet is Ownable, Utils {
@@ -10,7 +12,8 @@ contract StoxSmartWallet is Ownable, Utils {
      *  Members
      */
     address public backupAccount;
-    address public userWithdrawalAccount;
+    //address public userWithdrawalAccount;
+    StoxWithdrawalAccountLib.Data data;
     string public version = "0.1";
    
 
@@ -18,12 +21,7 @@ contract StoxSmartWallet is Ownable, Utils {
      *  Modifiers
      */
     modifier userWidthrawlAccountAvailable {
-        require(userWithdrawalAccount != 0x0);
-        _;
-    }
-
-    modifier userWithdrawalAccountNotSet {
-        require(userWithdrawalAccount == 0);
+        require(StoxWithdrawalAccountLib.get(data) != 0x0);
         _;
     }
 
@@ -61,12 +59,9 @@ contract StoxSmartWallet is Ownable, Utils {
             public
             ownerOnly
             validAddress(_userWithdrawalAccount)
-            userWithdrawalAccountNotSet
             {
         
-        userWithdrawalAccount = _userWithdrawalAccount;
-        SetUserWithdrawalAccount(_userWithdrawalAccount);
-        
+        StoxWithdrawalAccountLib.set(data,_userWithdrawalAccount);
     }
 
     /*
@@ -100,8 +95,8 @@ contract StoxSmartWallet is Ownable, Utils {
             greaterThanZero(_amount)
             {
 
-        _token.transfer(userWithdrawalAccount,_amount);
-        TransferToUserWithdrawalAccount(_token, userWithdrawalAccount, _amount);   
+        _token.transfer(StoxWithdrawalAccountLib.get(data),_amount);
+        TransferToUserWithdrawalAccount(_token, StoxWithdrawalAccountLib.get(data), _amount);   
     }
 
 }
