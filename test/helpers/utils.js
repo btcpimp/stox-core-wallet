@@ -1,3 +1,6 @@
+const wei = 1000000000
+const Gwei = 1000000000*wei 
+
 function isException(error) {
     let strError = error.toString();
     return strError.includes('invalid opcode') || strError.includes('invalid JUMP') || strError.includes('VM Exception');
@@ -9,5 +12,7 @@ function ensureException(error) {
 
 module.exports = {
     isException: isException,
-    ensureException: ensureException
+    ensureException: ensureException,
+    getRealGasPrice: 20*wei,
+    getWeiToDollarConversion: 1300/Gwei  
 };
