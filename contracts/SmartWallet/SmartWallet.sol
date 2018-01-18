@@ -15,8 +15,8 @@ contract SmartWallet {
     /*
      *  Events
      */
-    event TransferToBackupAccount(address _token, address _backupAccount, uint _amount);
-    event TransferToUserWithdrawalAccount(address _token, address _userWithdrawalAccount, uint _amount);
+    event TransferToBackupAccount(IERC20Token _token, address _backupAccount, uint _amount);
+    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
      
     /*
