@@ -47,8 +47,9 @@ library SmartWalletLib {
     /*
         @dev Initialize the wallet with the operator and backupAccount address
         
-        @param _userWithdrawalAccount       The user account to withdraw funds to
-        
+        @param _self                        Wallet storage
+        @param _backupAccount               Operator account to release funds in case the user lost his withdrawal account
+        @param _operator                    The operator account
     */
     function initWallet(Wallet storage _self, address _backupAccount, address _operator) 
             public
@@ -63,8 +64,8 @@ library SmartWalletLib {
     /*
         @dev Setting the account of the user to send funds to. 
         
+        @param _self                        Wallet storage
         @param _userWithdrawalAccount       The user account to withdraw funds to
-        
     */
     function setUserWithdrawalAccount(Wallet storage _self, address _userWithdrawalAccount) 
             public
@@ -81,6 +82,7 @@ library SmartWalletLib {
         @dev Withdraw funds to a backup account. 
 
 
+        @param _self                Wallet storage
         @param _token               The ERC20 token the owner withdraws from 
         @param _amount              Amount to transfer    
     */
@@ -96,6 +98,7 @@ library SmartWalletLib {
     /*
         @dev Withdraw funds to the user account. 
 
+        @param _self                Wallet storage
         @param _token               The ERC20 token the owner withdraws from 
         @param _amount              Amount to transfer    
     */
