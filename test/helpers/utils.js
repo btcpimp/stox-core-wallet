@@ -13,6 +13,6 @@ function ensureException(error) {
 module.exports = {
     isException: isException,
     ensureException: ensureException,
-    getRealGasPrice: 20*wei,
-    getWeiToDollarConversion: 1300/Gwei  
+    getRealGasPrice: 2*wei,
+    getWeiToDollarConversion: 1100/Gwei  
 };

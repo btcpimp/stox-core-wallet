@@ -1,7 +1,7 @@
 const utils = require('./helpers/utils');
 
 const StoxTestToken = artifacts.require("./token/StoxTestToken.sol");
-const SmartWallet = artifacts.require("./SmartWallet/StoxSmartWallet.sol");
+const SmartWallet = artifacts.require("./SmartWallet/SmartWallet.sol");
 
 let stoxTestToken;
 let smartWallet;
@@ -17,7 +17,7 @@ function getLogArg(result, arg, logIndex = 0) {
     return result.logs[logIndex].args[arg];
 }
 
-contract ('StoxSmartWallet', function(accounts) {
+contract ('SmartWallet', function(accounts) {
 
     let trueOwner     = accounts[0];
     let nonOwner      = accounts[1];
@@ -28,7 +28,7 @@ contract ('StoxSmartWallet', function(accounts) {
     async function initSmartWallet() {
 
         smartWallet = await SmartWallet.new(backupAccount, trueOwner);
-        stoxTestToken.issue(smartWallet.address,10000);
+        await stoxTestToken.issue(smartWallet.address,10000);
         
     }
     
@@ -56,11 +56,41 @@ before (async function() {
     
     });
 
-
-it ("should throw if trying to transfer funds to an account that is not set yet", async function() {
+it ("verify that a non-owner cannot send Tokens to a user account", async function() {
     
     await initSmartWallet();
+    await initPlayers();
 
+    await smartWallet.setUserWithdrawalAccount(player1, {from: trueOwner});
+
+    try {
+        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, 500, {from: nonOwner});
+    } catch (error) {
+        return utils.ensureException(error);        
+    }
+
+    assert.equal(false, "Didn't throw");
+
+    }); 
+
+it ("verify that funds can be sent to a player", async function() {
+    
+        await initSmartWallet();
+        await initPlayers();
+    
+        await smartWallet.setUserWithdrawalAccount(player1, {from: trueOwner});
+        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address,500, {from: trueOwner});
+    
+        let player1Tokens = await stoxTestToken.balanceOf(player1);
+    
+        assert.equal(player1Tokens,1500);
+    
+        });
+        
+
+it ("should throw if trying to transfer funds to an account that is not set yet", async function() {
+    await initSmartWallet();
+    
     try {
         await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, 500, {from: trueOwner});
     } catch (error) {
@@ -71,6 +101,30 @@ it ("should throw if trying to transfer funds to an account that is not set yet"
 
     }); 
 
+it ("should throw if the backup account address is set to 0", async function() {
+    
+    try {
+        smartWallet = await SmartWallet.new('0x0', trueOwner);
+    } catch (error) {
+        return utils.ensureException(error);        
+    }
+    
+    assert.equal(false, "Didn't throw");
+    
+    });
+
+it ("should throw if the operator address is set to 0", async function() {
+    
+    try {
+        smartWallet = await SmartWallet.new(backupAccount, '0x0');
+    } catch (error) {
+        return utils.ensureException(error);        
+    }
+    
+    assert.equal(false, "Didn't throw");
+    
+    });    
+    
 it ("should throw if user withdrawal account address is set to 0", async function() {
     
     await initSmartWallet();
@@ -84,20 +138,48 @@ it ("should throw if user withdrawal account address is set to 0", async functio
     assert.equal(false, "Didn't throw");
     
     });
-
+    
 
 it ("should throw if user withdrawal account is not set", async function() {
     
     await initSmartWallet();
 
     await smartWallet.setUserWithdrawalAccount(player1, {from: trueOwner});
-    
-    let userAccount = await smartWallet.userWithdrawalAccount.call();
-
+    let userAccount = (await smartWallet.wallet.call())[2];
+      
     assert.equal(userAccount, player1);
 
     });
 
+it ("should throw if the backup account is not set", async function() {
+    
+    await initSmartWallet();
+
+    let setBackupAccount = (await smartWallet.wallet.call())[1];
+    
+    assert.equal(setBackupAccount, backupAccount);
+
+    });
+
+it ("should throw if the operator address is not set", async function() {
+    
+    await initSmartWallet();
+
+    let operatorAddress = (await smartWallet.wallet.call())[0];
+    
+    assert.equal(operatorAddress, trueOwner);
+
+    });
+
+it ("should throw if the withdrawal account address is not set to 0 upon init", async function() {
+    
+    await initSmartWallet();
+
+    let withdrawalAccountAddress = (await smartWallet.wallet.call())[2];
+    
+    assert.equal(withdrawalAccountAddress, 0x0);
+
+    });
 
 it ("should throw if user withdrawal account is set twice", async function() {
     
@@ -129,22 +211,6 @@ it ("should throw if a non-owner tries to set a user withdrawal account", async 
 
     });
 
-
-it ("verify that funds can be sent to a player", async function() {
-
-    await initSmartWallet();
-    await initPlayers();
-
-    await smartWallet.setUserWithdrawalAccount(player1, {from: trueOwner});
-    await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address,500, {from: trueOwner});
-
-    let player1Tokens = await stoxTestToken.balanceOf(player1);
-
-    assert.equal(player1Tokens,1500);
-
-    });
-
-
 it ("verify that funds can be sent to the backup account", async function() {
     
     await initSmartWallet();
@@ -157,23 +223,6 @@ it ("verify that funds can be sent to the backup account", async function() {
     assert.equal(backupAccountTokens,500);
 
     });
-
-it ("verify that a non-owner cannot send Tokens to a user account", async function() {
-    
-    await initSmartWallet();
-    await initPlayers();
-
-    await smartWallet.setUserWithdrawalAccount(player1, {from: trueOwner});
-
-    try {
-        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, 500, {from: nonOwner});
-    } catch (error) {
-        return utils.ensureException(error);        
-    }
-
-    assert.equal(false, "Didn't throw");
-
-    }); 
 
 it ("verify that a non-owner cannot send Tokens to the backup account", async function() {
     

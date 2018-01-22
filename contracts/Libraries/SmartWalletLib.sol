@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.18;
 import "../token/IERC20Token.sol";
 
 ///@title - a contract that represents a smart wallet, created by Stox, for every new Stox user
@@ -40,8 +40,8 @@ library SmartWalletLib {
     /*
      *  Events
      */
-    event TransferToBackupAccount(address _token, address _backupAccount, uint _amount);
-    event TransferToUserWithdrawalAccount(address _token, address _userWithdrawalAccount, uint _amount);
+    event TransferToBackupAccount(IERC20Token _token, address _backupAccount, uint _amount);
+    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
 
     /*
@@ -57,8 +57,8 @@ library SmartWalletLib {
             validAddress(_operator)
             {
         
-        _self.operatorAccount = _backupAccount;
-        _self.backupAccount = _operator;
+        _self.operatorAccount = _operator;
+        _self.backupAccount = _backupAccount;
     }
 
     /*

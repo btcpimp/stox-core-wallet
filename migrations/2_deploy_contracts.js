@@ -1,5 +1,8 @@
-var StoxSmartWallet = artifacts.require("./SmartWallet/StoxSmartWallet.sol");
+var SmartWallet = artifacts.require("./SmartWallet/SmartWallet.sol");
+var SmartWalletLib = artifacts.require("./Libraries/SmartWalletLib.sol");
 
 module.exports = function(deployer) {
-    deployer.deploy(StoxSmartWallet);
+   deployer.deploy(SmartWalletLib);
+   deployer.link(SmartWalletLib,SmartWallet);
+    
 };

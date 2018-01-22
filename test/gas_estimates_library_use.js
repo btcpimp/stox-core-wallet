@@ -4,7 +4,7 @@ const fs = require('fs');
 const solc = require('solc');
 
 const StoxTestToken = artifacts.require("./token/StoxTestToken.sol");
-const SmartWallet = artifacts.require("./SmartWallet/StoxSmartWallet.sol");
+const SmartWallet = artifacts.require("./SmartWallet/SmartWallet.sol");
 
 //Accounts
 let trueOwner =       web3.eth.accounts[0];
@@ -38,22 +38,23 @@ module.exports = async function(callback){
 
     var input = {
         'token/IERC20Token.sol': fs.readFileSync('../contracts/token/IERC20Token.sol', 'utf8'),
-        'Utils.sol': fs.readFileSync('../contracts/Utils.sol', 'utf8'),
-        'Ownable.sol': fs.readFileSync('../contracts/Ownable.sol', 'utf8'),
-        'Libraries/StoxWithdrawalAccountLib.sol': fs.readFileSync('../contracts/Libraries/StoxWithdrawalAccountLib.sol', 'utf8'),
-        'StoxSmartWallet.sol': fs.readFileSync('../contracts/SmartWallet/StoxSmartWallet.sol', 'utf8')
+        //'Utils.sol': fs.readFileSync('../contracts/Utils.sol', 'utf8'),
+        //'Ownable.sol': fs.readFileSync('../contracts/Ownable.sol', 'utf8'),
+        'Libraries/SmartWalletLib.sol': fs.readFileSync('../contracts/Libraries/SmartWalletLib.sol', 'utf8'),
+        'SmartWallet.sol': fs.readFileSync('../contracts/SmartWallet/SmartWallet.sol', 'utf8')
     };
 
     // Compile the source code
     let output = await solc.compile({sources: input}, 1);
-    let abi = await output.contracts['StoxSmartWallet.sol:StoxSmartWallet'].interface;
-    let bytecode = await '0x' + output.contracts['StoxSmartWallet.sol:StoxSmartWallet'].bytecode;
+    let abi = await output.contracts['SmartWallet.sol:SmartWallet'].interface;
+    let bytecode = await '0x' + output.contracts['SmartWallet.sol:SmartWallet'].bytecode;
     
-    let abi_lib = await output.contracts['Libraries/StoxWithdrawalAccountLib.sol:StoxWithdrawalAccountLib'].interface;
-    let bytecode_lib = await '0x' + output.contracts['Libraries/StoxWithdrawalAccountLib.sol:StoxWithdrawalAccountLib'].bytecode;
+    let abi_lib = await output.contracts['Libraries/SmartWalletLib.sol:SmartWalletLib'].interface;
+    let bytecode_lib = await '0x' + output.contracts['Libraries/SmartWalletLib.sol:SmartWalletLib'].bytecode;
     
     //Depoly SWA library
     let gasEstimate_lib = await web3.eth.estimateGas({data: bytecode_lib});
+    //console.log(estimateGas)
     //Add extra 100000 gas to estimateGas. From few tests, per the below, it seems that the theoretical estimatedGas is not enough
     gasEstimate_lib += 100000;
     
@@ -69,12 +70,14 @@ module.exports = async function(callback){
              }
              else {
                  console.log("Library address: " + myLibrary.address);
-                 bytecode = await solc.linkBytecode(bytecode, {'Libraries/StoxWithdrawalAccountLib.sol': swalib_contract.address});
-
-                //Depoly Contract
+                 
+                 bytecode = await solc.linkBytecode(bytecode, {'Libraries/SmartWalletLib.sol:SmartWalletLib': swalib_contract.address});
+                 //Depoly Contract
                 let gasEstimate = await web3.eth.estimateGas({data: bytecode});
                 //Add extra 100000 gas to estimateGas. From few tests, per the below, it seems that the theoretical estimatedGas is not enough
+                console.log(gasEstimate)
                 gasEstimate += 100000;
+                
                 let SSW = await web3.eth.contract(JSON.parse(abi));
                 let ssw = await SSW.new(backupAccount, trueOwner,{
                     from: trueOwner,
@@ -94,7 +97,7 @@ module.exports = async function(callback){
                         console.log('Contract error: ' + err)
                     }
                 });
-    
+                  
              }
          }
          else {
