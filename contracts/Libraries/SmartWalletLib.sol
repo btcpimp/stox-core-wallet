@@ -11,6 +11,7 @@ library SmartWalletLib {
         address operatorAccount;
         address backupAccount;
         address userWithdrawalAccount;
+        address feesAccount;
     }
 
     /*
@@ -41,7 +42,7 @@ library SmartWalletLib {
      *  Events
      */
     event TransferToBackupAccount(IERC20Token _token, address _backupAccount, uint _amount);
-    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount, uint _fee);
+    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount, uint _fee, address _feesAccount);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
 
     /*
@@ -50,15 +51,18 @@ library SmartWalletLib {
         @param _self                        Wallet storage
         @param _backupAccount               Operator account to release funds in case the user lost his withdrawal account
         @param _operator                    The operator account
+        @param _feesAccount                 The account to transfer fees to
     */
-    function initWallet(Wallet storage _self, address _backupAccount, address _operator) 
+    function initWallet(Wallet storage _self, address _backupAccount, address _operator, address _feesAccount) 
             public
             validAddress(_backupAccount)
             validAddress(_operator)
+            validAddress(_feesAccount)
             {
         
         _self.operatorAccount = _operator;
         _self.backupAccount = _backupAccount;
+        _self.feesAccount = _feesAccount;
     }
 
     /*
@@ -110,11 +114,11 @@ library SmartWalletLib {
             {
 
         if (_fee > 0) {        
-            _token.transfer(_self.backupAccount, _fee); 
+            _token.transfer(_self.feesAccount, _fee); 
         }       
         
         _token.transfer(_self.userWithdrawalAccount, _amount);
-        TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount, _fee);   
+        TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount, _fee, _self.feesAccount);   
         
     }
 }
