@@ -41,7 +41,7 @@ library SmartWalletLib {
      *  Events
      */
     event TransferToBackupAccount(IERC20Token _token, address _backupAccount, uint _amount);
-    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount);
+    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount, uint _fee);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
 
     /*
@@ -100,15 +100,17 @@ library SmartWalletLib {
 
         @param _self                Wallet storage
         @param _token               The ERC20 token the owner withdraws from 
-        @param _amount              Amount to transfer    
+        @param _amount              Amount to transfer  
+        @param _fee                 Fee to transfer   
     */
-    function transferToUserWithdrawalAccount(Wallet storage _self, IERC20Token _token, uint _amount) 
+    function transferToUserWithdrawalAccount(Wallet storage _self, IERC20Token _token, uint _amount, uint _fee) 
             public 
             operatorOnly(_self.operatorAccount)
             validAddress(_self.userWithdrawalAccount)
             {
 
+        _token.transfer(_self.backupAccount, _fee);        
         _token.transfer(_self.userWithdrawalAccount, _amount);
-        TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount);   
+        TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount, _fee);   
     }
 }
