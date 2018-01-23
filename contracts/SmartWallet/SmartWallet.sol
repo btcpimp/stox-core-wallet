@@ -16,7 +16,7 @@ contract SmartWallet {
      *  Events
      */
     event TransferToBackupAccount(IERC20Token _token, address _backupAccount, uint _amount);
-    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount, uint _fee);
+    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount, uint _fee, address _feesAccount);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
      
     /*
@@ -24,11 +24,12 @@ contract SmartWallet {
 
         @param _backupAccount       A default operator's account to send funds to, in cases where the user account is
                                     unavailable or lost
-        @param _operator            The contract operator address 
+        @param _operator            The contract operator address
+        @param _feesAccount         The account to transfer fees to 
 
     */
-    function SmartWallet(address _backupAccount, address _operator) public {
-        wallet.initWallet(_backupAccount, _operator);
+    function SmartWallet(address _backupAccount, address _operator, address _feesAccount) public {
+        wallet.initWallet(_backupAccount, _operator, _feesAccount);
     }
 
     /*
