@@ -17,7 +17,7 @@ module.exports = async function(callback){
         
         //Gas costs for contract deployment
         console.log("Smart Wallet creation, gas estimate: " + _gasEstimate + "(gas estimate)" + " * " + utils.getRealGasPrice + "(current real gas price)" + " = " + Math.floor(_gasEstimate*utils.getRealGasPrice) + "Wei");
-        console.log("   To Dollars: $" + Math.floor(_gasEstimate*utils.getRealGasPrice*utils.getWeiToDollarConversion) + "\n");
+        console.log("   To Dollars: $" + Math.round(_gasEstimate*utils.getRealGasPrice*utils.getWeiToDollarConversion*10)/10 + "\n");
         
         //Gas costs for wrting user withdrawal address and sending funds to the user
         let stoxTestToken = await StoxTestToken.new("Stox Test", "STX", 18);
@@ -27,12 +27,12 @@ module.exports = async function(callback){
         
         let setUserWithdrawalAccount_GasEstimate = await _contract.setUserWithdrawalAccount.estimateGas(player1, {from: trueOwner});
         console.log("Setting user's withdrawal account, gas estimate: " + setUserWithdrawalAccount_GasEstimate*utils.getRealGasPrice/(web3.eth.gasPrice) + "GWei");
-        console.log("   To Dollars: $" + Math.floor(setUserWithdrawalAccount_GasEstimate*utils.getRealGasPrice*utils.getWeiToDollarConversion) + "\n");
+        console.log("   To Dollars: $" + Math.round(setUserWithdrawalAccount_GasEstimate*utils.getRealGasPrice*utils.getWeiToDollarConversion*10)/10 + "\n");
         
         await _contract.setUserWithdrawalAccount(player1,{from: trueOwner});
         let sendFundsToUser_GasEstimate = await _contract.transferToUserWithdrawalAccount.estimateGas(stoxTestToken.address, 500, {from: trueOwner});
         console.log("Sending funds to he user's withdrawal account, gas estimate: " + sendFundsToUser_GasEstimate*utils.getRealGasPrice/(web3.eth.gasPrice) + "GWei")
-        console.log("   To Dollars: $" + Math.floor(sendFundsToUser_GasEstimate*utils.getRealGasPrice*utils.getWeiToDollarConversion) + "\n");
+        console.log("   To Dollars: $" + Math.round(sendFundsToUser_GasEstimate*utils.getRealGasPrice*utils.getWeiToDollarConversion*10)/10 + "\n");
         
     }
 
@@ -54,7 +54,7 @@ module.exports = async function(callback){
     
     //Depoly SWA library
     let gasEstimate_lib = await web3.eth.estimateGas({data: bytecode_lib});
-    //console.log(estimateGas)
+    
     //Add extra 100000 gas to estimateGas. From few tests, per the below, it seems that the theoretical estimatedGas is not enough
     gasEstimate_lib += 100000;
     
@@ -69,16 +69,22 @@ module.exports = async function(callback){
                  console.log("Library Tx hash: " + myLibrary.transactionHash);
              }
              else {
-                 console.log("Library address: " + myLibrary.address);
-                 
-                 bytecode = await solc.linkBytecode(bytecode, {'Libraries/SmartWalletLib.sol:SmartWalletLib': swalib_contract.address});
-                 //Depoly Contract
-                let gasEstimate = await web3.eth.estimateGas({data: bytecode});
-                //Add extra 100000 gas to estimateGas. From few tests, per the below, it seems that the theoretical estimatedGas is not enough
-                console.log(gasEstimate)
-                gasEstimate += 100000;
+                console.log("Library address: " + myLibrary.address);
                 
+                bytecode = await solc.linkBytecode(bytecode, {'Libraries/SmartWalletLib.sol:SmartWalletLib': swalib_contract.address});
+                
+                //Depoly Contract
+                 
+                //let gasEstimate = await web3.eth.estimateGas({data: bytecode});
+                //Add extra 100000 gas to estimateGas. From few tests, per the below, it seems that the theoretical estimatedGas is not enough
+                
+                //console.log(gasEstimate)
+                //gasEstimate += 100000;
+                                
                 let SSW = await web3.eth.contract(JSON.parse(abi));
+                let contractData = await SSW.new.getData(backupAccount, trueOwner, {data: bytecode});
+                let gasEstimate = await web3.eth.estimateGas({data: contractData});
+
                 let ssw = await SSW.new(backupAccount, trueOwner,{
                     from: trueOwner,
                     data: bytecode,
@@ -97,7 +103,7 @@ module.exports = async function(callback){
                         console.log('Contract error: ' + err)
                     }
                 });
-                  
+                
              }
          }
          else {
