@@ -16,7 +16,7 @@ contract SmartWallet {
      *  Events
      */
     event TransferToBackupAccount(IERC20Token _token, address _backupAccount, uint _amount);
-    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount);
+    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount, uint _fee);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
      
     /*
@@ -59,7 +59,7 @@ contract SmartWallet {
         @param _token               The ERC20 token the owner withdraws from 
         @param _amount              Amount to transfer    
     */
-    function transferToUserWithdrawalAccount(IERC20Token _token, uint _amount) public {
-        wallet.transferToUserWithdrawalAccount(_token, _amount);
+    function transferToUserWithdrawalAccount(IERC20Token _token, uint _amount, uint _fee) public {
+        wallet.transferToUserWithdrawalAccount(_token, _amount, _fee);
     }
 }
