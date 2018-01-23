@@ -109,8 +109,12 @@ library SmartWalletLib {
             validAddress(_self.userWithdrawalAccount)
             {
 
-        _token.transfer(_self.backupAccount, _fee);        
+        if (_fee > 0) {        
+            _token.transfer(_self.backupAccount, _fee); 
+        }       
+        
         _token.transfer(_self.userWithdrawalAccount, _amount);
         TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount, _fee);   
+        
     }
 }
