@@ -12,6 +12,7 @@ let nonOwner;
 let player1;
 let player2;
 let backupAccount;
+let feesAccount;
 
 function getLogArg(result, arg, logIndex = 0) {
     return result.logs[logIndex].args[arg];
@@ -24,10 +25,11 @@ contract ('SmartWallet', function(accounts) {
     let player1       = accounts[2];
     let player2       = accounts[3];
     let backupAccount = accounts[4];
+    let feesAccount   = accounts[5];
 
     async function initSmartWallet() {
 
-        smartWallet = await SmartWallet.new(backupAccount, trueOwner);
+        smartWallet = await SmartWallet.new(backupAccount, trueOwner, feesAccount);
         await stoxTestToken.issue(smartWallet.address,10000);
         
     }
@@ -38,10 +40,12 @@ contract ('SmartWallet', function(accounts) {
         let player1Tokens = await stoxTestToken.balanceOf.call(player1);
         let player2Tokens = await stoxTestToken.balanceOf.call(player2);
         let backupAccountTokens = await stoxTestToken.balanceOf.call(backupAccount);
+        let feesAccountTokens = await stoxTestToken.balanceOf.call(feesAccount);
         
         await stoxTestToken.destroy(player1, player1Tokens);
         await stoxTestToken.destroy(player2, player2Tokens);
         await stoxTestToken.destroy(backupAccount, backupAccountTokens);
+        await stoxTestToken.destroy(feesAccount, feesAccountTokens);
         
         // Issue new tokens
         await stoxTestToken.issue(player1, 1000);
@@ -95,9 +99,9 @@ it ("verify that fee is sent when transfering fund to the user", async function(
         await smartWallet.setUserWithdrawalAccount(player1, {from: trueOwner});
         await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address,500, 500, {from: trueOwner});
     
-        let backupAccountTokens = await stoxTestToken.balanceOf(backupAccount);
+        let feesAccountTokens = await stoxTestToken.balanceOf(feesAccount);
     
-        assert.equal(backupAccountTokens,500);
+        assert.equal(feesAccountTokens,500);
     
         });
 
@@ -118,7 +122,7 @@ it ("should throw if trying to transfer funds to an account that is not set yet"
 it ("should throw if the backup account address is set to 0", async function() {
     
     try {
-        smartWallet = await SmartWallet.new('0x0', trueOwner);
+        smartWallet = await SmartWallet.new('0x0', trueOwner, feesAccount);
     } catch (error) {
         return utils.ensureException(error);        
     }
@@ -130,14 +134,26 @@ it ("should throw if the backup account address is set to 0", async function() {
 it ("should throw if the operator address is set to 0", async function() {
     
     try {
-        smartWallet = await SmartWallet.new(backupAccount, '0x0');
+        smartWallet = await SmartWallet.new(backupAccount, '0x0', feesAccount);
     } catch (error) {
         return utils.ensureException(error);        
     }
     
     assert.equal(false, "Didn't throw");
     
-    });    
+    }); 
+
+it ("should throw if the fees account address is set to 0", async function() {
+    
+    try {
+        smartWallet = await SmartWallet.new(backupAccount, trueOwner, '0x0');
+    } catch (error) {
+        return utils.ensureException(error);        
+    }
+    
+    assert.equal(false, "Didn't throw");
+    
+    });       
     
 it ("should throw if user withdrawal account address is set to 0", async function() {
     
@@ -172,6 +188,16 @@ it ("should throw if the backup account is not set", async function() {
     let setBackupAccount = (await smartWallet.wallet.call())[1];
     
     assert.equal(setBackupAccount, backupAccount);
+
+    });
+
+it ("should throw if the fees account is not set", async function() {
+    
+    await initSmartWallet();
+
+    let setFeesAccount = (await smartWallet.wallet.call())[3];
+    
+    assert.equal(setFeesAccount, feesAccount);
 
     });
 
