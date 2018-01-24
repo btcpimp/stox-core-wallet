@@ -7,7 +7,7 @@ library SmartWalletLib {
     /*
      *  Structs
      */
-     struct Wallet {
+    struct Wallet {
         address operatorAccount;
         address backupAccount;
         address userWithdrawalAccount;
@@ -41,8 +41,8 @@ library SmartWalletLib {
     /*
      *  Events
      */
-    event TransferToBackupAccount(IERC20Token _token, address _backupAccount, uint _amount);
-    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount, uint _fee, address _feesAccount);
+    event TransferToBackupAccount(address _token, address _backupAccount, uint _amount);
+    event TransferToUserWithdrawalAccount(address _token, address _userWithdrawalAccount, uint _amount, address _feesAccount, uint _fee);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
 
     /*
@@ -60,9 +60,9 @@ library SmartWalletLib {
             validAddress(_feesAccount)
             {
         
-        _self.operatorAccount = _operator;
-        _self.backupAccount = _backupAccount;
-        _self.feesAccount = _feesAccount;
+                _self.operatorAccount = _operator;
+                _self.backupAccount = _backupAccount;
+                _self.feesAccount = _feesAccount;
     }
 
     /*
@@ -78,8 +78,8 @@ library SmartWalletLib {
             addressNotSet(_self.userWithdrawalAccount)
             {
         
-        _self.userWithdrawalAccount = _userWithdrawalAccount;
-        SetUserWithdrawalAccount(_userWithdrawalAccount);
+                _self.userWithdrawalAccount = _userWithdrawalAccount;
+                SetUserWithdrawalAccount(_userWithdrawalAccount);
     }
 
     /*
@@ -94,11 +94,11 @@ library SmartWalletLib {
             public 
             operatorOnly(_self.operatorAccount)
             {
-
-        _token.transfer(_self.backupAccount, _amount);
-        TransferToBackupAccount(_token, _self.backupAccount, _amount); 
+        
+                _token.transfer(_self.backupAccount, _amount);
+                TransferToBackupAccount(_token, _self.backupAccount, _amount); 
     }
-
+      
     /*
         @dev Withdraw funds to the user account. 
 
@@ -113,12 +113,12 @@ library SmartWalletLib {
             validAddress(_self.userWithdrawalAccount)
             {
 
-        if (_fee > 0) {        
-            _token.transfer(_self.feesAccount, _fee); 
-        }       
-        
-        _token.transfer(_self.userWithdrawalAccount, _amount);
-        TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount, _fee, _self.feesAccount);   
+                if (_fee > 0) {        
+                    _token.transfer(_self.feesAccount, _fee); 
+                }       
+                
+                _token.transfer(_self.userWithdrawalAccount, _amount);
+                TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount, _self.feesAccount, _fee);   
         
     }
 }
