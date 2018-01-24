@@ -11,12 +11,13 @@ contract SmartWallet {
      */
     using SmartWalletLib for SmartWalletLib.Wallet;
     SmartWalletLib.Wallet public wallet;
-
+       
+   // Wallet public wallet;
     /*
      *  Events
      */
-    event TransferToBackupAccount(IERC20Token _token, address _backupAccount, uint _amount);
-    event TransferToUserWithdrawalAccount(IERC20Token _token, address _userWithdrawalAccount, uint _amount, uint _fee, address _feesAccount);
+    event TransferToBackupAccount(address _token, address _backupAccount, uint _amount);
+    event TransferToUserWithdrawalAccount(address _token, address _userWithdrawalAccount, uint _amount, address _feesAccount, uint _fee);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
      
     /*
