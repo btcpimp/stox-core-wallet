@@ -13,6 +13,11 @@ let player1;
 let player2;
 let backupAccount;
 let feesAccount;
+let tokenAccount;
+
+function isEventArgValid(arg_value,expected_value){
+    return (arg_value == expected_value);
+}
 
 function getLog(result,name,logIndex = 0) {
     return result.logs[logIndex][name];
@@ -92,6 +97,13 @@ it ("verify that funds can be sent to a player", async function() {
         let event  = getLog(transactionResult,"event")
         console.log({event})
         assert.equal(event,"TransferToUserWithdrawalAccount")
+
+        assert.equal(isEventArgValid(getLogArg(transactionResult,"_token"),stoxTestToken.address) &&
+                        isEventArgValid(getLogArg(transactionResult,"_userWithdrawalAccount"),player1) &&
+                        isEventArgValid(getLogArg(transactionResult,"_amount"),500) && 
+                        isEventArgValid(getLogArg(transactionResult,"_feesAccount"),feesAccount) &&
+                        isEventArgValid(getLogArg(transactionResult,"_fee"),500),
+                        true);
 
         let player1Tokens = await stoxTestToken.balanceOf(player1);
     
@@ -188,6 +200,8 @@ it ("should throw if user withdrawal account is not set", async function() {
     console.log({event})
     assert.equal(event,"SetUserWithdrawalAccount");
 
+    assert.equal(isEventArgValid(getLogArg(transactionResult,"_userWithdrawalAccount"),player1), true);
+
     let userAccount = (await smartWallet.wallet.call())[2];
     assert.equal(userAccount, player1);
 
@@ -273,6 +287,11 @@ it ("verify that funds can be sent to the backup account", async function() {
     let event  = getLog(transactionResult,"event")
     console.log({event})
     assert.equal(event,"TransferToBackupAccount")
+
+    assert.equal(isEventArgValid(getLogArg(transactionResult,"_token"),stoxTestToken.address) &&
+                    isEventArgValid(getLogArg(transactionResult,"_backupAccount"),backupAccount) &&
+                    isEventArgValid(getLogArg(transactionResult,"_amount"),500),
+                    true);
 
     let backupAccountTokens = await stoxTestToken.balanceOf(backupAccount);
     assert.equal(backupAccountTokens,500);
