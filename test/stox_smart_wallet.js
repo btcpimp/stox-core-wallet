@@ -77,7 +77,7 @@ it ("verify that a non-owner cannot send Tokens to a user account", async functi
     await smartWallet.setUserWithdrawalAccount(player1, {from: trueOwner});
 
     try {
-        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, 500, 500, {from: nonOwner});
+        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, 500, stoxTestToken.address, 500, {from: nonOwner});
     } catch (error) {
         return utils.ensureException(error);        
     }
@@ -92,7 +92,7 @@ it ("verify that funds can be sent to a player", async function() {
         await initPlayers();
     
         await smartWallet.setUserWithdrawalAccount(player1, {from: trueOwner});
-        let transactionResult = await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address,500, 500, {from: trueOwner});
+        let transactionResult = await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address,500, stoxTestToken.address, 500, {from: trueOwner});
 
         let event  = getLog(transactionResult,"event")
         console.log({event})
@@ -101,6 +101,7 @@ it ("verify that funds can be sent to a player", async function() {
         assert.equal(isEventArgValid(getLogArg(transactionResult,"_token"),stoxTestToken.address) &&
                         isEventArgValid(getLogArg(transactionResult,"_userWithdrawalAccount"),player1) &&
                         isEventArgValid(getLogArg(transactionResult,"_amount"),500) && 
+                        isEventArgValid(getLogArg(transactionResult,"_feesToken"),stoxTestToken.address) && 
                         isEventArgValid(getLogArg(transactionResult,"_feesAccount"),feesAccount) &&
                         isEventArgValid(getLogArg(transactionResult,"_fee"),500),
                         true);
@@ -117,7 +118,7 @@ it ("verify that fee is sent when transfering fund to the user", async function(
         await initPlayers();
     
         await smartWallet.setUserWithdrawalAccount(player1, {from: trueOwner});
-        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, 500, toxTestToken.address, 500, {from: trueOwner});
+        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, 500, stoxTestToken.address, 500, {from: trueOwner});
     
         let feesAccountTokens = await stoxTestToken.balanceOf(feesAccount);
     
@@ -130,7 +131,7 @@ it ("should throw if trying to transfer funds to an account that is not set yet"
     await initSmartWallet();
     
     try {
-        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, 500, toxTestToken.address, 500, {from: trueOwner});
+        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, 500, stoxTestToken.address, 500, {from: trueOwner});
     } catch (error) {
         return utils.ensureException(error);        
     }
@@ -321,7 +322,7 @@ it ("verify that the amount to send is not negative", async function() {
     await initPlayers();
 
     try {
-        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, -500, toxTestToken.address, 500);
+        await smartWallet.transferToUserWithdrawalAccount(stoxTestToken.address, -500, stoxTestToken.address, 500);
     } catch (error) {
         return utils.ensureException(error);        
     }
