@@ -10,6 +10,7 @@ const SmartWallet = artifacts.require("./SmartWallet/SmartWallet.sol");
 let trueOwner =       web3.eth.accounts[0];
 let player1 =         web3.eth.accounts[1];
 let backupAccount =   web3.eth.accounts[2];
+let feesAccount   =   web3.eth.accounts[3];  
 
 module.exports = async function(callback){
 
@@ -30,7 +31,7 @@ module.exports = async function(callback){
         console.log("   To Dollars: $" + Math.round(setUserWithdrawalAccount_GasEstimate*utils.getRealGasPrice*utils.getWeiToDollarConversion*10)/10 + "\n");
         
         await _contract.setUserWithdrawalAccount(player1,{from: trueOwner});
-        let sendFundsToUser_GasEstimate = await _contract.transferToUserWithdrawalAccount.estimateGas(stoxTestToken.address, 500, {from: trueOwner});
+        let sendFundsToUser_GasEstimate = await _contract.transferToUserWithdrawalAccount.estimateGas(stoxTestToken.address, 500, 500, {from: trueOwner});
         console.log("Sending funds to he user's withdrawal account, gas estimate: " + sendFundsToUser_GasEstimate*utils.getRealGasPrice/(web3.eth.gasPrice) + "GWei")
         console.log("   To Dollars: $" + Math.round(sendFundsToUser_GasEstimate*utils.getRealGasPrice*utils.getWeiToDollarConversion*10)/10 + "\n");
         
@@ -54,7 +55,7 @@ module.exports = async function(callback){
     
     //Depoly SWA library
     let gasEstimate_lib = await web3.eth.estimateGas({data: bytecode_lib});
-    
+    console.log(gasEstimate_lib)
     //Add extra 100000 gas to estimateGas. From few tests, per the below, it seems that the theoretical estimatedGas is not enough
     gasEstimate_lib += 100000;
     
@@ -82,10 +83,10 @@ module.exports = async function(callback){
                 //gasEstimate += 100000;
                                 
                 let SSW = await web3.eth.contract(JSON.parse(abi));
-                let contractData = await SSW.new.getData(backupAccount, trueOwner, {data: bytecode});
+                let contractData = await SSW.new.getData(backupAccount, trueOwner, feesAccount, {data: bytecode});
                 let gasEstimate = await web3.eth.estimateGas({data: contractData});
 
-                let ssw = await SSW.new(backupAccount, trueOwner,{
+                let ssw = await SSW.new(backupAccount, trueOwner, feesAccount, {
                     from: trueOwner,
                     data: bytecode,
                     gas: gasEstimate
