@@ -42,7 +42,7 @@ library SmartWalletLib {
      *  Events
      */
     event TransferToBackupAccount(address _token, address _backupAccount, uint _amount);
-    event TransferToUserWithdrawalAccount(address _token, address _userWithdrawalAccount, uint _amount, address _feesAccount, uint _fee);
+    event TransferToUserWithdrawalAccount(address _token, address _userWithdrawalAccount, uint _amount, address _feesToken, address _feesAccount, uint _fee);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
 
     /*
@@ -107,18 +107,18 @@ library SmartWalletLib {
         @param _amount              Amount to transfer  
         @param _fee                 Fee to transfer   
     */
-    function transferToUserWithdrawalAccount(Wallet storage _self, IERC20Token _token, uint _amount, uint _fee) 
+    function transferToUserWithdrawalAccount(Wallet storage _self, IERC20Token _token, uint _amount, IERC20Token _feesToken, uint _fee) 
             public 
             operatorOnly(_self.operatorAccount)
             validAddress(_self.userWithdrawalAccount)
             {
 
                 if (_fee > 0) {        
-                    _token.transfer(_self.feesAccount, _fee); 
+                    _feesToken.transfer(_self.feesAccount, _fee); 
                 }       
                 
                 _token.transfer(_self.userWithdrawalAccount, _amount);
-                TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount, _self.feesAccount, _fee);   
+                TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount, _self.feesAccount, _feesToken, _fee);   
         
     }
 }
