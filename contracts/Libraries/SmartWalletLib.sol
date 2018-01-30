@@ -118,7 +118,7 @@ library SmartWalletLib {
                 }       
                 
                 _token.transfer(_self.userWithdrawalAccount, _amount);
-                TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount, _self.feesAccount, _feesToken, _fee);   
+                TransferToUserWithdrawalAccount(_token, _self.userWithdrawalAccount, _amount,  _feesToken, _self.feesAccount, _fee);   
         
     }
 }
