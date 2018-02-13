@@ -10,8 +10,8 @@ contract UpgradableSmartWallet {
     using UpgradableSmartWalletStorageLib for UpgradableSmartWalletStorageLib.Wallet;
     UpgradableSmartWalletStorageLib.Wallet public wallet;
    
-    function UpgradableSmartWallet(address _relayVersionContract) {
-        wallet.relayVersionContract = _relayVersionContract;
+    function UpgradableSmartWallet(address _relayVersionContract) public {
+        wallet.initUpgradableSmartWallet(_relayVersionContract);
     }
 
     function() {

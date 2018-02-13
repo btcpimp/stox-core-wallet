@@ -16,8 +16,8 @@ function ensureEvent(_event,_value) {
              console.log("Event value: " + result.event); 
             //console.log(result.args["_value"].toString());
             //console.log(getLogArg(result,"_value").toString());
-            else
-            console.log('error in set user withdrawal account')
+        else
+            console.log('error in event' + result.event)
         _event.stopWatching();
         assert.equal(_value,result.event);    
     });
