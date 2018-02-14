@@ -27,8 +27,12 @@ contract RelayVersion {
     event SetRelayVersion(address _relayVersionAddress);
 
     /*
-     *  Dev
-     */
+        @dev Initialize the RelayVersion contract
+        
+        @param _operator                    The contract operator address
+        @param _relayVersion                Address of the contract to delegate function calls to
+        
+    */
     function RelayVersion(address _operator, address _relayVersion) 
         public
         validAddress(_relayVersion)
@@ -38,6 +42,12 @@ contract RelayVersion {
             relayVersionAddress = _relayVersion;
     }
 
+    /*
+        @dev set the Relay contract address
+        
+        @param _relayVersion                Address of the contract to delegate function calls to
+        
+    */
     function setRelayVersion(address _relayVersion) 
         public
         operatorOnly()
@@ -46,6 +56,11 @@ contract RelayVersion {
             SetRelayVersion(_relayVersion);
     }
     
+    /*
+        @dev get the Relay contract address
+        
+               
+    */
     function getRelayVersionAddress()
         public
         returns (address val)

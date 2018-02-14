@@ -51,6 +51,7 @@ contract ('UpgradableSmartWallet', function(accounts) {
     let backupAccount             = accounts[4];
     let feesAccount               = accounts[5];
     
+    let grantedTokens = 5
 
     async function initUpgradableWallets() {
         
@@ -68,8 +69,8 @@ contract ('UpgradableSmartWallet', function(accounts) {
         await stoxShadowToken.destroy(player1UpgradableWallet.address, player1UpgradableWalletTokens);
         await stoxShadowToken.destroy(player2UpgradableWallet.address, player2UpgradableWalletTokens);
         
-        await stoxShadowToken.issue(player1UpgradableWallet.address,5);
-        await stoxShadowToken.issue(player2UpgradableWallet.address,5);
+        await stoxShadowToken.issue(player1UpgradableWallet.address,grantedTokens);
+        await stoxShadowToken.issue(player2UpgradableWallet.address,grantedTokens);
                 
     }
 
@@ -376,5 +377,145 @@ it ("should throw if user withdrawal account is not set", async function() {
 
     });
 
+    
+
+it ("should throw if the backup account is not set", async function() {
+    
+    await initTokens();
+    await initUpgradableWallets();
+
+    let setBackupAccount = (await player1UpgradableWallet.wallet.call())[1];
+    
+    assert.equal(setBackupAccount, backupAccount);
+
+    });
+
+it ("should throw if the fees account is not set", async function() {
+    
+    await initTokens();
+    await initUpgradableWallets();
+
+    let setFeesAccount = (await player1UpgradableWallet.wallet.call())[3];
+    
+    assert.equal(setFeesAccount, feesAccount);
+
+    });
+
+it ("should throw if the operator address is not set", async function() {
+    
+    await initTokens();
+    await initUpgradableWallets();
+
+    let operatorAddress = (await player1UpgradableWallet.wallet.call())[0];
+    
+    assert.equal(operatorAddress, trueOwner);
+
+    });    
  
+
+it ("should throw if the withdrawal account address is not set to 0 upon init", async function() {
+    
+    await initTokens();
+    await initUpgradableWallets();
+
+    let withdrawalAccountAddress = (await player1UpgradableWallet.wallet.call())[2];
+    
+    assert.equal(withdrawalAccountAddress, 0x0);
+
+    });
+
+it ("should throw if user withdrawal account is set twice", async function() {
+    
+    await initTokens();
+    await initUpgradableWallets();
+
+    await iex1.setUserWithdrawalAccount(player1Account,{from: trueOwner});
+    
+    try {
+        await iex1.setUserWithdrawalAccount(player2Account,{from: trueOwner});
+    } catch (error) {
+        return utils.ensureException(error); 
+    }
+
+    assert.equal(false, "Didn't throw");
+
+    });
+
+ 
+
+it ("should throw if a non-owner tries to set a user withdrawal account", async function() {
+    
+    await initTokens();
+    await initUpgradableWallets();
+
+    try {
+        await iex1.setUserWithdrawalAccount(player2Account, {from: nonOwner});
+    } catch (error) {
+        return utils.ensureException(error);        
+    }
+    
+    assert.equal(false, "Didn't throw");
+
+    });
+
+it ("verify that funds can be sent to the backup account", async function() {
+    
+    await initTokens();
+    await initUpgradableWallets();
+
+    //need a larger balance for this test
+    await stoxShadowToken.issue(player1UpgradableWallet.address,500);
+    
+    tx_result = await iex1.transferToBackupAccount(stoxShadowToken.address,100, {from: trueOwner});
+      
+    var _Receipt = UpgradableSmartWallet.at(player1UpgradableWallet.address);
+    var _Event = _Receipt.TransferToBackupAccount();
+        
+    utils.ensureEvent(_Event,"TransferToBackupAccount");
+    
+    assert.equal(isRelayEventLogArgValid(tx_result.receipt,1,2,66,stoxShadowToken.address.toString().substring(2)) &&
+                    isRelayEventLogArgValid(tx_result.receipt,1,66,130,backupAccount.toString().substring(2)) &&
+                    isRelayEventLogArgValid(tx_result.receipt,1,130,194,(100).toString(16)), 
+                    true);
+    
+    let backupAccountTokens = await stoxShadowToken.balanceOf(backupAccount);
+
+    assert.equal(backupAccountTokens,100);
+
+    });
+
+  
+
+it ("verify that a non-owner cannot send Tokens to the backup account", async function() {
+    
+    await initTokens();
+    await initUpgradableWallets();
+
+    try {
+        await iex1.transferToBackupAccount(stoxShadowToken.address, 500, {from: nonOwner});
+    } catch (error) {
+        return utils.ensureException(error);        
+    }
+
+    assert.equal(false, "Didn't throw");
+
+    }); 
+    
+it ("verify that the amount to send is not negative", async function() {
+    
+    await initTokens();
+    await initUpgradableWallets();
+
+    await iex1.setUserWithdrawalAccount(player1Account,{from: trueOwner});
+    
+    try {
+        await iex1.transferToUserWithdrawalAccount(stoxShadowToken.address, -500, stoxShadowToken.address, 500);
+    } catch (error) {
+        return utils.ensureException(error);        
+    }
+
+    assert.equal(false, "Didn't throw");
+
+    });  
+
 });
