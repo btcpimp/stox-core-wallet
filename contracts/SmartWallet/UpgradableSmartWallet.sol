@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
 import "../Libraries/UpgradableSmartWalletStorageLib.sol";
-import "./RelayVersion.sol";
+import "./RelayDispatcher.sol";
 import "../token/IERC20Token.sol";
 
 contract UpgradableSmartWallet {
@@ -23,8 +23,8 @@ contract UpgradableSmartWallet {
         @param _relayVersionContract    The address of the contract that holds the relay version contract address
           
     */  
-    function UpgradableSmartWallet(address _relayVersionContract) public {
-        wallet.initUpgradableSmartWallet(_relayVersionContract);
+    function UpgradableSmartWallet(address _relayDispatcher) public {
+        wallet.initUpgradableSmartWallet(_relayDispatcher);
     }
 
     /*
@@ -43,10 +43,10 @@ contract UpgradableSmartWallet {
 
     */
     function() {
-        RelayVersion currentRelayVersionContract = RelayVersion(wallet.relayVersionContract); 
-        var currentRelayVersionAddress = currentRelayVersionContract.getRelayVersionAddress();
+        RelayDispatcher currentRelayDispatcher = RelayDispatcher(wallet.relayDispatcher); 
+        var currentRelayContractAddress = currentRelayDispatcher.getRelayContractAddress();
         
-        if (!currentRelayVersionAddress.delegatecall(msg.data)) 
+        if (!currentRelayContractAddress.delegatecall(msg.data)) 
            revert();
     }
 

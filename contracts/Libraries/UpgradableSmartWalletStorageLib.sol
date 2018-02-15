@@ -11,7 +11,7 @@ library UpgradableSmartWalletStorageLib {
         address backupAccount;
         address userWithdrawalAccount;
         address feesAccount;
-        address relayVersionContract;
+        address relayDispatcher;
     }
 
     /*
@@ -39,11 +39,11 @@ library UpgradableSmartWalletStorageLib {
         @param _relayVersionContract        The address of the contract that holds the relay version contract address
         
     */
-    function initUpgradableSmartWallet(Wallet storage _self, address _relayVersionContract) 
+    function initUpgradableSmartWallet(Wallet storage _self, address _relayDispatcher) 
         public
-        validAddress(_relayVersionContract)
+        validAddress(_relayDispatcher)
         {
-            _self.relayVersionContract = _relayVersionContract;
+            _self.relayDispatcher = _relayDispatcher;
     }
 
     /*
