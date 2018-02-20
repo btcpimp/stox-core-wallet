@@ -1,11 +1,12 @@
 pragma solidity ^0.4.18;
+import "../Ownable.sol";
 
-contract RelayDispatcher {
+contract RelayDispatcher is Ownable {
     
     /*
      *  Members
      */
-    address public relayContractAddress;
+    address public smartWalletImplAddress;
     address public operator;
 
     /*
@@ -16,15 +17,10 @@ contract RelayDispatcher {
         _;
     }
 
-    modifier operatorOnly() {
-        require(msg.sender == operator);
-        _;
-    }
-
     /*
      *  Events
      */
-    event SetRelayContractAddress(address _relayContractAddress);
+    event SetSmartWalletImplAddress(address _smartWalletImplAddress);
 
     /*
         @dev Initialize the RelayContract contract
@@ -33,13 +29,14 @@ contract RelayDispatcher {
         @param _relayContractAddress        Address of the contract to delegate function calls to
         
     */
-    function RelayDispatcher(address _operator, address _relayContractAddress) 
+    function RelayDispatcher(address _operator, address _smartWalletImplAddress) 
         public
-        validAddress(_relayContractAddress)
-        validAddress(_operator) 
+        validAddress(_smartWalletImplAddress)
+        validAddress(_operator)
+        Ownable(_operator) 
         {
-            operator = _operator;
-            relayContractAddress = _relayContractAddress;
+            //operator = _operator;
+            smartWalletImplAddress = _smartWalletImplAddress;
     }
 
     /*
@@ -48,24 +45,23 @@ contract RelayDispatcher {
         @param _relayContractAddress                Address of the contract to delegate function calls to
         
     */
-    function setRelayContractAddress(address _relayContractAddress) 
+    function setSmartWalletImplAddress(address _smartWalletImplAddress) 
         public
-        operatorOnly()
+        ownerOnly()
         {
-            relayContractAddress = _relayContractAddress;
-            SetRelayContractAddress(_relayContractAddress);
+            smartWalletImplAddress = _smartWalletImplAddress;
+            SetSmartWalletImplAddress(_smartWalletImplAddress);
     }
     
     /*
         @dev get the Relay contract address
-        
-               
+             
     */
-    function getRelayContractAddress()
+    function getSmartWalletImplAddress()
         public
-        returns (address val)
+        returns (address)
         {
-            val = relayContractAddress;
+            return smartWalletImplAddress;
     }
     
 }

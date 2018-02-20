@@ -1,6 +1,6 @@
 pragma solidity ^0.4.18;
-import "../Libraries/UpgradableSmartWalletStorageLib.sol";
-import "./RelayDispatcher.sol";
+import "../Libraries/UpgradableSmartWalletLib.sol";
+import "../SmartWallet/RelayDispatcher.sol";
 import "../token/IERC20Token.sol";
 
 contract UpgradableSmartWallet {
@@ -8,23 +8,33 @@ contract UpgradableSmartWallet {
     /*
      *  Members
      */
-    using UpgradableSmartWalletStorageLib for UpgradableSmartWalletStorageLib.Wallet;
-    UpgradableSmartWalletStorageLib.Wallet public wallet;
+    using UpgradableSmartWalletLib for UpgradableSmartWalletLib.Wallet;
+    UpgradableSmartWalletLib.Wallet public wallet;
 
     /*
-     *  Events
+     *  Modifiers
      */
-    event TransferToBackupAccount(address _token, address _backupAccount, uint _amount);
+    modifier validAddress(address _address) {
+        require(_address != 0x0);
+        _;
+    }
 
     /*
         @dev Initialize the contract
 
-
+        @param _backupAccount               Operator account to release funds in case the user lost his withdrawal account
+        @param _operator                    The operator account
+        @param _feesAccount                 The account to transfer fees to
         @param _relayVersionContract    The address of the contract that holds the relay version contract address
           
     */  
-    function UpgradableSmartWallet(address _relayDispatcher) public {
-        wallet.initUpgradableSmartWallet(_relayDispatcher);
+    function UpgradableSmartWallet(address _backupAccount, address _operator, address _feesAccount, address _relayDispatcher) 
+        public 
+        validAddress(_backupAccount)
+        validAddress(_operator)
+        validAddress(_feesAccount)
+        {
+            wallet.initUpgradableSmartWallet(_backupAccount,_operator,_feesAccount, _relayDispatcher);
     }
 
     /*
@@ -39,12 +49,21 @@ contract UpgradableSmartWallet {
     }
 
     /*
+        @dev Set a new RelayDispatcher address
+
+        @param _relayDispatcher               RelayDispatcher new address
+    */
+    function setRelayDispatcher(address _relayDispatcher) public {
+        wallet.setRelayDispatcher(_relayDispatcher);
+    }
+
+    /*
         @dev Fallback function to delegate calls to the relay contract
 
     */
     function() {
         RelayDispatcher currentRelayDispatcher = RelayDispatcher(wallet.relayDispatcher); 
-        var currentRelayContractAddress = currentRelayDispatcher.getRelayContractAddress();
+        var currentRelayContractAddress = currentRelayDispatcher.getSmartWalletImplAddress();
         
         if (!currentRelayContractAddress.delegatecall(msg.data)) 
            revert();

@@ -1,16 +1,16 @@
 const utils = require('./helpers/utils');
 const UpgradableSmartWallet = artifacts.require("./SmartWallet/UpgradableSmartWallet.sol");
-const SmartWalletFunctions = artifacts.require("./SmartWallet/SmartWalletFunctions.sol");
-const IUpgradableSmartContract = artifacts.require("./SmartWallet/IUpgradableSmartContract.sol");
+const SmartWalletImpl = artifacts.require("./SmartWallet/SmartWalletImpl.sol");
+const IUpgradableSmartWallet = artifacts.require("./SmartWallet/IUpgradableSmartWallet.sol");
 const RelayDispatcher = artifacts.require("./SmartWallet/RelayDispatcher.sol");
-const StoxShadowToken = artifacts.require("./token/StoxShadowToken.sol");
+const ExtendedERC20Token = artifacts.require("./token/ExtendedERC20Token.sol");
 
 
 let relayDispatcher;
 let upgradableSmartWallet;
-let smartWalletFunctions;
-let smartWalletFunctions2;
-let relayContractAddress;
+let smartWalletImpl;
+let smartWalletImpl2;
+let smartWalletImplAddress;
 
 //Accounts
 let trueOwner;
@@ -55,14 +55,12 @@ contract ('UpgradableSmartWallet', function(accounts) {
 
     async function initUpgradableWallets() {
         
-        player1UpgradableWallet = await UpgradableSmartWallet.new(relayDispatcher.address);
-        iex1 = IUpgradableSmartContract.at(player1UpgradableWallet.address);
-        await iex1.initWallet(backupAccount,trueOwner,feesAccount);
+        player1UpgradableWallet = await UpgradableSmartWallet.new(backupAccount,trueOwner,feesAccount, relayDispatcher.address);
+        iex1 = IUpgradableSmartWallet.at(player1UpgradableWallet.address);
         
-        player2UpgradableWallet = await UpgradableSmartWallet.new(relayDispatcher.address);
-        iex2 = IUpgradableSmartContract.at(player2UpgradableWallet.address);
-        await iex2.initWallet(backupAccount,trueOwner,feesAccount);
-
+        player2UpgradableWallet = await UpgradableSmartWallet.new(backupAccount,trueOwner,feesAccount,relayDispatcher.address);
+        iex2 = IUpgradableSmartWallet.at(player2UpgradableWallet.address);
+        
         let player1UpgradableWalletTokens = await stoxShadowToken.balanceOf.call(player1UpgradableWallet.address);
         let player2UpgradableWalletTokens = await stoxShadowToken.balanceOf.call(player2UpgradableWallet.address);
         
@@ -95,11 +93,11 @@ contract ('UpgradableSmartWallet', function(accounts) {
 
 before (async function() {
     
-    stoxShadowToken = await StoxShadowToken.new("Stox Shadow", "STXSH", 18);
+    stoxShadowToken = await ExtendedERC20Token.new("Stox Shadow", "STXSH", 18);
     stoxShadowToken.totalSupply = 10000;
 
-    smartWalletFunctions = await SmartWalletFunctions.new();
-    relayDispatcher = await RelayDispatcher.new(trueOwner, smartWalletFunctions.address);
+    smartWalletImpl = await SmartWalletImpl.new();
+    relayDispatcher = await RelayDispatcher.new(trueOwner, smartWalletImpl.address);
     
 });
 
@@ -122,7 +120,7 @@ it ("verify set user withdrawal account event works with a relay account", async
 
     await iex1.setUserWithdrawalAccount(player1Account,{from: trueOwner});
     
-    var _Receipt = SmartWalletFunctions.at(player1UpgradableWallet.address);
+    var _Receipt = SmartWalletImpl.at(player1UpgradableWallet.address);
     var _Event = _Receipt.SetUserWithdrawalAccount();
     
     utils.ensureEvent(_Event,"SetUserWithdrawalAccount");
@@ -132,7 +130,7 @@ it ("verify set user withdrawal account event works with a relay account", async
 it ("should throw if relay contract address on wallet creation is set to 0", async function() {
     
     try {
-        player1UpgradableWallet = await UpgradableSmartWallet.new("0x0");
+        player1UpgradableWallet = await UpgradableSmartWallet.new(backupAccount,trueOwner,feesAccount, "0x0");
     } catch (error) {
         return utils.ensureException(error);        
     }
@@ -156,7 +154,7 @@ it ("should throw if relay version address on relay version contract creation is
 it ("should throw if relay version contract operator on relay version contract creation is set to 0", async function() {
     
     try {
-        relayDispatcher = await RelayDispatcher.new("0x0", smartWalletFunctions.address); 
+        relayDispatcher = await RelayDispatcher.new("0x0", smartWalletImpl.address); 
     } catch (error) {
         return utils.ensureException(error);        
     }
@@ -170,10 +168,10 @@ it ("should throw if non-operator tries to set the relay version address", async
     await initTokens();
     await initUpgradableWallets();
 
-    smartWalletFunctions2 = await SmartWalletFunctions.new();
+    smartWalletImpl2 = await SmartWalletImpl.new();
 
     try {
-        await relayDispatcher.setRelayContractAddress(smartWalletFunctions.address, {from: nonOwner}); 
+        await relayDispatcher.setSmartWalletImplAddress(smartWalletImpl.address, {from: nonOwner}); 
     } catch (error) {
         return utils.ensureException(error);        
     }
@@ -187,13 +185,13 @@ it ("verify that a relay version address is set", async function() {
     await initTokens();
     await initUpgradableWallets();
 
-    smartWalletFunctions2 = await SmartWalletFunctions.new();
+    smartWalletImpl2 = await SmartWalletImpl.new();
 
-    await relayDispatcher.setRelayContractAddress(smartWalletFunctions2.address, {from: trueOwner}); 
+    await relayDispatcher.setSmartWalletImplAddress(smartWalletImpl2.address, {from: trueOwner}); 
     
-    let relayContractAddress = await relayDispatcher.relayContractAddress();
+    let smartWalletImplAddress = await relayDispatcher.smartWalletImplAddress();
 
-    assert.equal(relayContractAddress,smartWalletFunctions2.address);
+    assert.equal(smartWalletImplAddress,smartWalletImpl2.address);
 
     }); 
     
@@ -202,13 +200,13 @@ it ("verify that setting a relay version address fires the corresponding event",
     await initTokens();
     await initUpgradableWallets();
 
-    smartWalletFunctions2 = await SmartWalletFunctions.new();
-    await relayDispatcher.setRelayContractAddress(smartWalletFunctions2.address, {from: trueOwner}); 
+    smartWalletImpl2 = await SmartWalletImpl.new();
+    await relayDispatcher.setSmartWalletImplAddress(smartWalletImpl2.address, {from: trueOwner}); 
     
     var _Receipt = RelayDispatcher.at(relayDispatcher.address);    
-    var _Event = _Receipt.SetRelayContractAddress();
+    var _Event = _Receipt.SetSmartWalletImplAddress();
     
-    utils.ensureEvent(_Event,"SetRelayContractAddress");
+    utils.ensureEvent(_Event,"SetSmartWalletImplAddress");
     
     });
 
@@ -240,7 +238,7 @@ it ("verify that funds can be sent to a player", async function() {
     await iex1.setUserWithdrawalAccount(player1Account,{from: trueOwner});
     tx_result = await iex1.transferToUserWithdrawalAccount(stoxShadowToken.address,100, stoxShadowToken.address, 100, {from: trueOwner});
        
-    var _Receipt = SmartWalletFunctions.at(player1UpgradableWallet.address);
+    var _Receipt = SmartWalletImpl.at(player1UpgradableWallet.address);
     var _Event = _Receipt.TransferToUserWithdrawalAccount();
         
     utils.ensureEvent(_Event,"TransferToUserWithdrawalAccount");
@@ -301,8 +299,8 @@ it ("should throw if the backup account address is set to 0", async function() {
     await initUpgradableWallets();
     
     try {
-        //iex1 = IUpgradableSmartContract.at(player1UpgradableWallet.address);
-        await iex1.initWallet('0x0',trueOwner,feesAccount);
+        player1UpgradableWallet = await UpgradableSmartWallet.new('0x0',trueOwner,feesAccount, relayDispatcher.address);
+        
         
     } catch (error) {
         return utils.ensureException(error);        
@@ -318,7 +316,8 @@ it ("should throw if the operator address is set to 0", async function() {
     await initUpgradableWallets();
     
     try {
-        await iex1.initWallet(backupAccount,'0x0',feesAccount);
+        player1UpgradableWallet = await UpgradableSmartWallet.new(backupAccount,'0x0',feesAccount, relayDispatcher.address);
+        
     } catch (error) {
         return utils.ensureException(error);        
     }
@@ -333,7 +332,8 @@ it ("should throw if the fees account address is set to 0", async function() {
     await initUpgradableWallets();
     
     try {
-        await iex1.initWallet(backupAccount,trueOwner,'0x0');
+        player1UpgradableWallet = await UpgradableSmartWallet.new(backupAccount,trueOwner,'0x0', relayDispatcher.address);
+        
     } catch (error) {
         return utils.ensureException(error);        
     }
@@ -365,7 +365,7 @@ it ("should throw if user withdrawal account is not set", async function() {
 
     let tx_result =  await iex1.setUserWithdrawalAccount(player1Account,{from: trueOwner});
     
-    var _Receipt = SmartWalletFunctions.at(player1UpgradableWallet.address);
+    var _Receipt = SmartWalletImpl.at(player1UpgradableWallet.address);
     var _Event = _Receipt.SetUserWithdrawalAccount();
         
     utils.ensureEvent(_Event,"SetUserWithdrawalAccount");
@@ -468,7 +468,7 @@ it ("verify that funds can be sent to the backup account", async function() {
     
     tx_result = await iex1.transferToBackupAccount(stoxShadowToken.address,100, {from: trueOwner});
       
-    var _Receipt = UpgradableSmartWallet.at(player1UpgradableWallet.address);
+    var _Receipt = IUpgradableSmartWallet.at(player1UpgradableWallet.address);
     var _Event = _Receipt.TransferToBackupAccount();
         
     utils.ensureEvent(_Event,"TransferToBackupAccount");
@@ -516,6 +516,79 @@ it ("verify that the amount to send is not negative", async function() {
 
     assert.equal(false, "Didn't throw");
 
-    });  
+    }); 
+    
+it ("Verify set of new Relay Dispatcher", async function() {
+
+    await initTokens();
+    await initUpgradableWallets();
+
+    let smartWalletImplNew = await SmartWalletImpl.new();
+    let relayDispatcherNew = await RelayDispatcher.new(trueOwner, smartWalletImplNew.address);
+
+    await iex1.setRelayDispatcher(relayDispatcherNew.address);
+
+    let relayDispatcherAddress = (await player1UpgradableWallet.wallet.call())[4];
+
+    assert.equal(relayDispatcherAddress,relayDispatcherNew.address);
+
+
+    });
+
+
+it ("Verify no set of new Relay Dispatcher address 0", async function() {
+
+    await initTokens();
+    await initUpgradableWallets();
+
+    try {
+        await iex1.setRelayDispatcher("0x0");  
+    } catch (error) {
+        return utils.ensureException(error);  
+    }
+
+    assert.equal(false, "Didn't throw");
+          
+    });
+
+it ("Verify event with correct parameters fired for setting a new Relay Dispatcher", async function() {
+    
+    await initTokens();
+    await initUpgradableWallets();
+
+    let smartWalletImplNew = await SmartWalletImpl.new();
+    let relayDispatcherNew = await RelayDispatcher.new(trueOwner, smartWalletImplNew.address);
+    
+    tx_result = await iex1.setRelayDispatcher(relayDispatcherNew.address);
+      
+    var _Receipt = IUpgradableSmartWallet.at(player1UpgradableWallet.address);
+    var _Event = _Receipt.SetRelayDispatcher();
+        
+    utils.ensureEvent(_Event,"SetRelayDispatcher");
+    
+    assert.equal(isRelayEventLogArgValid(tx_result.receipt,0,2,66,relayDispatcherNew.address.toString().substring(2)),
+                true);
+
+    });
+
+
+
+it ("Verify no set of new Relay Dispatcher address by non-owner", async function() {
+    
+        await initTokens();
+        await initUpgradableWallets();
+
+        let smartWalletImplNew = await SmartWalletImpl.new();
+        let relayDispatcherNew = await RelayDispatcher.new(trueOwner, smartWalletImplNew.address);
+        
+        try {
+            await iex1.setRelayDispatcher(relayDispatcherNew.address, {from: nonOwner});  
+        } catch (error) {
+            return utils.ensureException(error);  
+        }
+    
+        assert.equal(false, "Didn't throw");
+              
+        });
 
 });
