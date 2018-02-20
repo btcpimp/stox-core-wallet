@@ -23,10 +23,10 @@ contract RelayDispatcher is Ownable {
     event SetSmartWalletImplAddress(address _smartWalletImplAddress);
 
     /*
-        @dev Initialize the RelayContract contract
+        @dev Initialize the RelayDispatcher contract
         
         @param _operator                    The contract operator address
-        @param _relayContractAddress        Address of the contract to delegate function calls to
+        @param _smartWalletImplAddress      Address of the contract to delegate function calls to
         
     */
     function RelayDispatcher(address _operator, address _smartWalletImplAddress) 
@@ -40,9 +40,9 @@ contract RelayDispatcher is Ownable {
     }
 
     /*
-        @dev set the Relay contract address
+        @dev set the RelayDispatcher address
         
-        @param _relayContractAddress                Address of the contract to delegate function calls to
+        @param _smartWalletImplAddress       Address of the contract to delegate function calls to
         
     */
     function setSmartWalletImplAddress(address _smartWalletImplAddress) 
