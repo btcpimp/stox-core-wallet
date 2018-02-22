@@ -12,29 +12,18 @@ contract UpgradableSmartWallet {
     UpgradableSmartWalletLib.Wallet public wallet;
 
     /*
-     *  Modifiers
-     */
-    modifier validAddress(address _address) {
-        require(_address != 0x0);
-        _;
-    }
-
-    /*
         @dev Initialize the contract
 
         @param _backupAccount               Operator account to release funds in case the user lost his withdrawal account
         @param _operator                    The operator account
         @param _feesAccount                 The account to transfer fees to
-        @param _relayVersionContract    The address of the contract that holds the relay version contract address
+        @param _relayDispatcher             The address of the contract that holds the relay dispatcher
           
     */  
     function UpgradableSmartWallet(address _backupAccount, address _operator, address _feesAccount, address _relayDispatcher) 
         public 
-        validAddress(_backupAccount)
-        validAddress(_operator)
-        validAddress(_feesAccount)
         {
-            wallet.initUpgradableSmartWallet(_backupAccount,_operator,_feesAccount, _relayDispatcher);
+            wallet.initUpgradableSmartWallet(_backupAccount, _operator, _feesAccount, _relayDispatcher);
     }
 
     /*
@@ -62,11 +51,11 @@ contract UpgradableSmartWallet {
 
     */
     function() {
-        RelayDispatcher currentRelayDispatcher = RelayDispatcher(wallet.relayDispatcher); 
-        var currentRelayContractAddress = currentRelayDispatcher.getSmartWalletImplAddress();
+        RelayDispatcher relayDispatcher = RelayDispatcher(wallet.relayDispatcher); 
+        address relay = relayDispatcher.getSmartWalletImplAddress();
         
-        if (!currentRelayContractAddress.delegatecall(msg.data)) 
+        if (!relay.delegatecall(msg.data)) {
            revert();
+        }
     }
-
 }

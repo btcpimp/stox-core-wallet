@@ -7,7 +7,6 @@ contract RelayDispatcher is Ownable {
      *  Members
      */
     address public smartWalletImplAddress;
-    address public operator;
 
     /*
      *  Modifiers
@@ -25,17 +24,16 @@ contract RelayDispatcher is Ownable {
     /*
         @dev Initialize the RelayDispatcher contract
         
-        @param _operator                    The contract operator address
+        @param _owner                       The contract owner address
         @param _smartWalletImplAddress      Address of the contract to delegate function calls to
         
     */
-    function RelayDispatcher(address _operator, address _smartWalletImplAddress) 
+    function RelayDispatcher(address _owner, address _smartWalletImplAddress) 
         public
+        validAddress(_owner)
         validAddress(_smartWalletImplAddress)
-        validAddress(_operator)
-        Ownable(_operator) 
+        Ownable(_owner) 
         {
-            //operator = _operator;
             smartWalletImplAddress = _smartWalletImplAddress;
     }
 
@@ -47,7 +45,8 @@ contract RelayDispatcher is Ownable {
     */
     function setSmartWalletImplAddress(address _smartWalletImplAddress) 
         public
-        ownerOnly()
+        validAddress(_smartWalletImplAddress)
+        ownerOnly
         {
             smartWalletImplAddress = _smartWalletImplAddress;
             SetSmartWalletImplAddress(_smartWalletImplAddress);
@@ -59,9 +58,9 @@ contract RelayDispatcher is Ownable {
     */
     function getSmartWalletImplAddress()
         public
+        view
         returns (address)
         {
             return smartWalletImplAddress;
     }
-    
 }

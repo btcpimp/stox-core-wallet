@@ -27,8 +27,8 @@ contract SmartWalletImpl {
         _;
     }
 
-    modifier operatorOnly(address _operatorAccount) {
-        require(msg.sender == _operatorAccount);
+    modifier operatorOnly {
+        require(msg.sender == wallet.operatorAccount);
         _;
     }
 
@@ -37,13 +37,6 @@ contract SmartWalletImpl {
      */
     event TransferToUserWithdrawalAccount(address _token, address _userWithdrawalAccount, uint _amount, address _feesToken, address _feesAccount, uint _fee);
     event SetUserWithdrawalAccount(address _userWithdrawalAccount);
-
-     /*
-     
-        @dev Initialize the contract
-     
-     */
-    function SmartWalletFunctions() {}
 
     /*
         @dev Initialize the wallet with the operator and backupAccount address
@@ -71,7 +64,7 @@ contract SmartWalletImpl {
     */
     function setUserWithdrawalAccount(address _userWithdrawalAccount) 
         public
-        operatorOnly(wallet.operatorAccount)
+        operatorOnly
         validAddress(_userWithdrawalAccount)
         addressNotSet(wallet.userWithdrawalAccount) 
         {
@@ -89,7 +82,7 @@ contract SmartWalletImpl {
     */
     function transferToUserWithdrawalAccount(IERC20Token _token, uint _amount, IERC20Token _feesToken, uint _fee) 
         public 
-        operatorOnly(wallet.operatorAccount)
+        operatorOnly
         validAddress(wallet.userWithdrawalAccount)
         {
 
@@ -99,6 +92,5 @@ contract SmartWalletImpl {
                 
             _token.transfer(wallet.userWithdrawalAccount, _amount);
             TransferToUserWithdrawalAccount(_token, wallet.userWithdrawalAccount, _amount,  _feesToken, wallet.feesAccount, _fee);   
-        
     }
 }

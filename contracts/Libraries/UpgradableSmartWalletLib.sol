@@ -47,17 +47,14 @@ library UpgradableSmartWalletLib {
     function initUpgradableSmartWallet(Wallet storage _self, address _backupAccount, address _operator, address _feesAccount, address _relayDispatcher) 
         public
         validAddress(_relayDispatcher)
-        validAddress(_backupAccount)
-        validAddress(_operator)
-        validAddress(_feesAccount)
         {
             _self.relayDispatcher = _relayDispatcher;
-            RelayDispatcher currentRelayDispatcher = RelayDispatcher(_self.relayDispatcher); 
-            var currentRelayContractAddress = currentRelayDispatcher.getSmartWalletImplAddress();
+            RelayDispatcher relayDispatcher = RelayDispatcher(_self.relayDispatcher); 
+            address relay = relayDispatcher.getSmartWalletImplAddress();
             
-            if (!currentRelayContractAddress.delegatecall(bytes4(keccak256("initWallet(address,address,address)")),_backupAccount,_operator,_feesAccount)) 
-            revert();
-            
+            if (!relay.delegatecall(bytes4(keccak256("initWallet(address,address,address)")), _backupAccount, _operator, _feesAccount)) {
+                revert();
+            }
     }
 
     /*
@@ -77,15 +74,10 @@ library UpgradableSmartWalletLib {
 
     function setRelayDispatcher(Wallet storage _self, address _relayDispatcher)
         public
-        validAddress(_relayDispatcher)
         operatorOnly(_self.operatorAccount)
+        validAddress(_relayDispatcher)
         {
             _self.relayDispatcher = _relayDispatcher;
             SetRelayDispatcher(_relayDispatcher);
     }
-
-
-    
-
-    
 }
